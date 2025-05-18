@@ -1,4 +1,4 @@
-import { INodeType, INodeTypeDescription } from 'n8n-workflow';
+import type { INodeType, INodeTypeDescription, NodeConnectionType } from 'n8n-workflow';
 import { httpVerbFields, httpVerbOperations } from './HttpVerbDescription';
 
 export class HttpBin implements INodeType {
@@ -13,8 +13,8 @@ export class HttpBin implements INodeType {
 		defaults: {
 			name: 'HttpBin',
 		},
-		inputs: [{ type: 'main' }],
-		outputs: [{ type: 'main' }],
+		inputs: [{ type: 'main' as NodeConnectionType }],
+		outputs: [{ type: 'main' as NodeConnectionType }],
 		credentials: [
 			{
 				name: 'httpbinApi',

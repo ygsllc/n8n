@@ -16,8 +16,8 @@ export class ExampleNode implements INodeType {
 		defaults: {
 			name: 'Example Node',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [{ type: 'main' }],
+		outputs: [{ type: 'main' }],
 		properties: [
 			// Node properties which the user gets displayed and
 			// can change on the node.

@@ -1,0 +1,17 @@
+tunnel: n8n-tunnel
+# This should be the full path to the JSON file generated when you created the tunnel
+# Double-check this path exists and is correct
+credentials-file: /Users/yatinkarnik/.cloudflared/7bc7c098-18b0-4705-b108-1899d7d2a494.json
+
+# Ingress rules define how traffic is routed
+ingress:
+  # Route traffic for your hostname to the local n8n service
+  - hostname: n8n.confersolutions.ai
+    service: http://127.0.0.1:5678
+    # Optional: Helps if local n8n uses self-signed certs (not needed here) or has slow startup
+    originRequest:
+      noTLSVerify: true # Usually safe for http service
+      connectTimeout: 30s
+
+  # Catch-all rule: Return 404 for any other traffic to this tunnel
+  - service: http_status:404

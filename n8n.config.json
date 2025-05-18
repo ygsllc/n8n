@@ -1,0 +1,11 @@
+{
+  "host": "127.0.0.1",
+  "port": 5678,
+  "protocol": "http",
+  "userManagement": {
+    "disabled": true
+  },
+  "basicAuth": {
+    "active": false
+  }
+}

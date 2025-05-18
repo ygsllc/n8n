@@ -1,0 +1,1988 @@
+{
+  "data": [
+    {
+      "createdAt": "2025-04-02T19:29:20.421Z",
+      "updatedAt": "2025-04-03T04:51:47.000Z",
+      "id": "VBv6NCZyAYxbw4bc",
+      "name": "My first workflow",
+      "active": false,
+      "nodes": [
+        {
+          "parameters": {
+            "content": "## Perplexity Section\n🌐 Calls Perplexity API to get fresh research based on a form input.\n\n\n",
+            "height": 300,
+            "width": 460,
+            "color": 4
+          },
+          "id": "489a6ca4-b105-4bee-a466-9bf52d39070e",
+          "name": "Sticky Note5",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            -40,
+            240
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "method": "POST",
+            "url": "https://api.openai.com/v1/chat/completions",
+            "sendBody": true,
+            "specifyBody": "json",
+            "jsonBody": "={\n  \"model\": \"sonar-pro\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Act as a professional news researcher who is capable of finding detailed summaries about a news topic from highly reputable sources.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \" Research the following topic and return everything you can find about: '{{ $json['Topic or Question'] }}'.\"\n    }\n  ]\n}\n",
+            "options": {}
+          },
+          "id": "462b41f3-0569-4a74-a2ea-01018526b49b",
+          "name": "Perplexity Research",
+          "type": "n8n-nodes-base.httpRequest",
+          "position": [
+            40,
+            340
+          ],
+          "typeVersion": 4.2,
+          "onError": "continueRegularOutput"
+        },
+        {
+          "parameters": {
+            "options": {}
+          },
+          "id": "ce05d764-f112-4273-a3ad-5d8733afbb40",
+          "name": "When chat message received",
+          "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+          "position": [
+            520,
+            240
+          ],
+          "webhookId": "b132ff74-2807-4cbf-b5b7-a62a207161d3",
+          "typeVersion": 1.1
+        },
+        {
+          "parameters": {
+            "promptType": "define",
+            "text": "=You are an expert in SEO content writing.\n\nYour mission is to create, publish, and notify about a search engine optimized article for a blog focused on artificial intelligence. Follow the steps below: {{ $('Format Research Output').item.json.research }}\n\n1. **Write an SEO-optimized article with a maximum of 20 lines** based on the provided information:\n   - Structure the article with a catchy **H1 title**, one or two **H2 subtitles**, and a professional yet accessible tone.\n   - Extract and include relevant keywords from the data.\n   - Optimize for readability: short sentences, clear paragraphs, and a CTA if relevant.\n   - Do not exceed 20 lines of content.\n\n2. **Publish the article on WordPress**, including:\n   - The **title** as the article's headline\n   - The **SEO content** as the body\n\n3. **Send an email** to my address : {{ $json.emailAddress }} containing:\n   - The article's title\n   - The **URL** of the published article on WordPress\n\n4. **Retrieve the list of available Slack tools first** using “Slack Tools”.\n   - Then, send a notification on Slack that the article has been published, including:\n     - The article title\n     - The article link\n     - Slack channel ID: {{ $json.slackChannelId }}\n\n5. **Retrieve the list of available Notion tools first** using “Notion Tools”.\n   Then, **add a new entry to my Notion database** (ID: {{ $json.notionDatabaseId }}) with the following fields:\n   - The 'Name' column is of type 'title'  → {{ $('Start with Research Query Submission').item.json['Topic or Question'] }}\n   The 'Subject' column is of type 'rich_text' → [the article's headline]\n   - The 'Content'column is of type 'rich_text' → [The SEO content]\n   - The 'URL' column is of type 'URL': → [The article link]\n   - The 'Status' column is of type 'select' → Select: `publish`\n\nImportant: Ensure that each step is successfully completed **before proceeding to the next**.\n",
+            "options": {}
+          },
+          "id": "640a4018-a7a8-46fb-8adf-7cf5b2d42367",
+          "name": "Copywriting AI Agent",
+          "type": "@n8n/n8n-nodes-langchain.agent",
+          "position": [
+            980,
+            340
+          ],
+          "typeVersion": 1.7
+        },
+        {
+          "parameters": {
+            "assignments": {
+              "assignments": [
+                {
+                  "id": "23b8e8c4-9191-415a-9661-1b60d413528a",
+                  "name": "research",
+                  "type": "string",
+                  "value": "={{ $json.choices[0].message.content.replaceAll(\"[1]\", \" - source: \" +$json.citations[0]).replaceAll(\"[2]\",\" - source:\" +$json.citations[1]).replaceAll(\"[3]\",\" - source: \" +$json.citations[2]).replaceAll(\"[4]\",\" - source: \"+$json.citations[3]).replaceAll(\"[5]\",\" - source: \"+$json.citations[4]).replaceAll(\"[6]\",\" - source: \"+$json.citations[5]).replaceAll(\"[7]\",\" - source: \"+$json.citations[6]).replaceAll(\"[8]\",\" - source: \"+$json.citations[7]).replaceAll(\"[9]\",\" - source: \"+$json.citations[8]).replaceAll(\"[10]\",\" - source: \"+$json.citations[9]) }}"
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "134a7ece-146f-46d4-a757-e7c122bf97e5",
+          "name": "Format Research Output",
+          "type": "n8n-nodes-base.set",
+          "position": [
+            240,
+            340
+          ],
+          "typeVersion": 3.4
+        },
+        {
+          "parameters": {
+            "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+            "additionalFields": {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Content', ``, 'string') }}",
+              "status": "publish"
+            }
+          },
+          "id": "fd00d546-30aa-4c52-89e7-ebba7062da6a",
+          "name": "Publish Article to WordPress",
+          "type": "n8n-nodes-base.wordpressTool",
+          "position": [
+            800,
+            640
+          ],
+          "typeVersion": 1,
+          "credentials": {
+            "wordpressApi": {
+              "id": "2NRJAB9BQdFPZnn2",
+              "name": "Wordpress account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "model": {
+              "__rl": true,
+              "mode": "list",
+              "value": "gpt-4o-mini",
+              "cachedResultName": "gpt-4o-mini"
+            },
+            "options": {}
+          },
+          "id": "25a68df6-1998-4632-bf91-d9358089f19a",
+          "name": "Generate SEO Blog Content (GPT-4o)",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "position": [
+            560,
+            640
+          ],
+          "typeVersion": 1.2,
+          "credentials": {
+            "openAiApi": {
+              "id": "1KT4xSUgQbyxQfAl",
+              "name": "OpenAi account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "formTitle": "AutoBlog Creator",
+            "formDescription": "From research to article — no writing required",
+            "formFields": {
+              "values": [
+                {
+                  "fieldLabel": "Topic or Question",
+                  "fieldType": "textarea",
+                  "placeholder": "=How is GPT-4 transforming content creation in 2025?",
+                  "requiredField": true
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "beec8c2b-794d-4403-9917-856d2a89b50d",
+          "name": "Start with Research Query Submission",
+          "type": "n8n-nodes-base.formTrigger",
+          "position": [
+            -220,
+            340
+          ],
+          "webhookId": "a29cbcd3-9d11-4f7c-9aad-14681c356c53",
+          "typeVersion": 2.2
+        },
+        {
+          "parameters": {
+            "content": "## Intro Sticky \n🔁 **This workflow automates the full cycle of SEO blog content creation** — from live topic research using Perplexity to blog publishing on WordPress, Slack/Gmail notifications, and Notion logging.",
+            "height": 140,
+            "width": 460,
+            "color": 3
+          },
+          "id": "378fc554-5598-489e-972e-204539aa592d",
+          "name": "Sticky Note1",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            -40,
+            60
+          ],
+          "typeVersion": 1
+        }
+      ],
+      "connections": {
+        "Perplexity Research": {
+          "main": [
+            [
+              {
+                "node": "Format Research Output",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Format Research Output": {
+          "main": [
+            []
+          ]
+        },
+        "When chat message received": {
+          "main": [
+            [
+              {
+                "node": "Copywriting AI Agent",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Publish Article to WordPress": {
+          "ai_tool": [
+            [
+              {
+                "node": "Copywriting AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Generate SEO Blog Content (GPT-4o)": {
+          "ai_languageModel": [
+            [
+              {
+                "node": "Copywriting AI Agent",
+                "type": "ai_languageModel",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Start with Research Query Submission": {
+          "main": [
+            [
+              {
+                "node": "Perplexity Research",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": {
+        "executionOrder": "v1"
+      },
+      "staticData": null,
+      "meta": {
+        "templateCredsSetupCompleted": true
+      },
+      "pinData": {},
+      "versionId": "b6af916e-2977-485b-8229-30312c3b1015",
+      "triggerCount": 2,
+      "tags": []
+    },
+    {
+      "createdAt": "2025-04-03T07:00:23.756Z",
+      "updatedAt": "2025-04-03T07:00:23.756Z",
+      "id": "t8agC7jl47oWO5cN",
+      "name": "Scrape and summarize webpages with AI",
+      "active": false,
+      "nodes": [
+        {
+          "id": "a9048293-787d-44d6-b995-d329b2495048",
+          "name": "When clicking \"Execute Workflow\"",
+          "type": "n8n-nodes-base.manualTrigger",
+          "position": [
+            380,
+            240
+          ],
+          "parameters": {},
+          "typeVersion": 1
+        },
+        {
+          "id": "56017e8b-2f2e-4f40-9325-184ea01a18be",
+          "name": "Sticky Note",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            580,
+            120
+          ],
+          "parameters": {
+            "width": 1071.752021563343,
+            "height": 285.66037735849045,
+            "content": "## Scrape latest Paul Graham essays"
+          },
+          "typeVersion": 1
+        },
+        {
+          "id": "aa855d7c-6602-4242-bc84-56fed7c27c26",
+          "name": "Sticky Note1",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1700,
+            120
+          ],
+          "parameters": {
+            "width": 625,
+            "height": 607,
+            "content": "## Summarize them with GPT"
+          },
+          "typeVersion": 1
+        },
+        {
+          "id": "1a38e545-6d3b-40b2-a3ff-6f91fdd772de",
+          "name": "Fetch Essay List",
+          "type": "n8n-nodes-base.httpRequest",
+          "position": [
+            660,
+            240
+          ],
+          "parameters": {
+            "url": "http://www.paulgraham.com/articles.html",
+            "options": {}
+          },
+          "typeVersion": 4.2
+        },
+        {
+          "id": "bd713892-356b-4a9c-b076-000bd4f1f1ba",
+          "name": "OpenAI Chat Model",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "position": [
+            1920,
+            460
+          ],
+          "parameters": {
+            "model": {
+              "__rl": true,
+              "mode": "list",
+              "value": "gpt-4o-mini"
+            },
+            "options": {}
+          },
+          "credentials": {
+            "openAiApi": {
+              "id": "1KT4xSUgQbyxQfAl",
+              "name": "OpenAi account"
+            }
+          },
+          "typeVersion": 1.2
+        },
+        {
+          "id": "4d7359ab-ba87-4756-8168-f2b987aac2fc",
+          "name": "Extract essay names",
+          "type": "n8n-nodes-base.html",
+          "position": [
+            860,
+            240
+          ],
+          "parameters": {
+            "options": {},
+            "operation": "extractHtmlContent",
+            "extractionValues": {
+              "values": [
+                {
+                  "key": "essay",
+                  "attribute": "href",
+                  "cssSelector": "table table a",
+                  "returnArray": true,
+                  "returnValue": "attribute"
+                }
+              ]
+            }
+          },
+          "typeVersion": 1.2
+        },
+        {
+          "id": "8342d13f-879d-426b-ba28-ab696dd7f155",
+          "name": "Split out into items",
+          "type": "n8n-nodes-base.splitOut",
+          "position": [
+            1060,
+            240
+          ],
+          "parameters": {
+            "options": {},
+            "fieldToSplitOut": "essay"
+          },
+          "typeVersion": 1
+        },
+        {
+          "id": "a057d3cb-b7fb-4b4d-810a-e4de3ac10702",
+          "name": "Fetch essay texts",
+          "type": "n8n-nodes-base.httpRequest",
+          "position": [
+            1460,
+            240
+          ],
+          "parameters": {
+            "url": "=http://www.paulgraham.com/{{ $json.essay }}",
+            "options": {}
+          },
+          "typeVersion": 4.2
+        },
+        {
+          "id": "98164d8c-3d6f-485d-93b6-1da3e8ae7ca8",
+          "name": "Extract title",
+          "type": "n8n-nodes-base.html",
+          "position": [
+            1960,
+            -60
+          ],
+          "parameters": {
+            "options": {},
+            "operation": "extractHtmlContent",
+            "extractionValues": {
+              "values": [
+                {
+                  "key": "title",
+                  "cssSelector": "title"
+                }
+              ]
+            }
+          },
+          "typeVersion": 1.2
+        },
+        {
+          "id": "fc0b6230-d169-4b20-803b-1896982c37c3",
+          "name": "Summarization Chain",
+          "type": "@n8n/n8n-nodes-langchain.chainSummarization",
+          "position": [
+            1960,
+            240
+          ],
+          "parameters": {
+            "options": {},
+            "operationMode": "documentLoader"
+          },
+          "typeVersion": 2
+        },
+        {
+          "id": "a656524a-9f77-4922-9de7-e2221ac82b70",
+          "name": "Clean up",
+          "type": "n8n-nodes-base.set",
+          "position": [
+            2660,
+            240
+          ],
+          "parameters": {
+            "options": {},
+            "assignments": {
+              "assignments": [
+                {
+                  "id": "7b337b47-a1c6-470e-881f-0c038b4917e5",
+                  "name": "title",
+                  "type": "string",
+                  "value": "={{ $json.title }}"
+                },
+                {
+                  "id": "ca820521-4fff-4971-84b5-e6e2dbd8bb7a",
+                  "name": "summary",
+                  "type": "string",
+                  "value": "={{ $json.response.text }}"
+                },
+                {
+                  "id": "0fd9b5e3-44dd-49a3-82c1-3a4aa4698376",
+                  "name": "url",
+                  "type": "string",
+                  "value": "=http://www.paulgraham.com/{{ $('Limit to first 3').first().json.essay }}"
+                }
+              ]
+            }
+          },
+          "typeVersion": 3.4
+        },
+        {
+          "id": "da738af0-7302-442d-bdc8-c9771be10794",
+          "name": "Merge",
+          "type": "n8n-nodes-base.merge",
+          "position": [
+            2460,
+            240
+          ],
+          "parameters": {
+            "mode": "combine",
+            "options": {},
+            "combineBy": "combineByPosition"
+          },
+          "typeVersion": 3
+        },
+        {
+          "id": "adf51f27-8d3e-49a8-b850-7990d355dc81",
+          "name": "Default Data Loader",
+          "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+          "position": [
+            2040,
+            460
+          ],
+          "parameters": {
+            "options": {},
+            "jsonData": "={{ $('Extract Text Only').item.json.data }}",
+            "jsonMode": "expressionData"
+          },
+          "typeVersion": 1
+        },
+        {
+          "id": "f57c5908-4ae3-4ce1-a74b-0fc393792c21",
+          "name": "Recursive Character Text Splitter",
+          "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+          "position": [
+            2120,
+            580
+          ],
+          "parameters": {
+            "options": {},
+            "chunkSize": 6000
+          },
+          "typeVersion": 1
+        },
+        {
+          "id": "278eed78-3489-41e3-b4d2-a2de788fcd21",
+          "name": "Limit to first 3",
+          "type": "n8n-nodes-base.limit",
+          "position": [
+            1260,
+            240
+          ],
+          "parameters": {
+            "maxItems": 3
+          },
+          "typeVersion": 1
+        },
+        {
+          "id": "028147d1-2a45-416d-91d0-40a0af2747f5",
+          "name": "Extract Text Only",
+          "type": "n8n-nodes-base.html",
+          "position": [
+            1780,
+            240
+          ],
+          "parameters": {
+            "options": {},
+            "operation": "extractHtmlContent",
+            "extractionValues": {
+              "values": [
+                {
+                  "key": "data",
+                  "cssSelector": "body",
+                  "skipSelectors": "img,nav"
+                }
+              ]
+            }
+          },
+          "typeVersion": 1.2
+        }
+      ],
+      "connections": {
+        "Merge": {
+          "main": [
+            [
+              {
+                "node": "Clean up",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Extract title": {
+          "main": [
+            [
+              {
+                "node": "Merge",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Fetch Essay List": {
+          "main": [
+            [
+              {
+                "node": "Extract essay names",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Limit to first 3": {
+          "main": [
+            [
+              {
+                "node": "Fetch essay texts",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Extract Text Only": {
+          "main": [
+            [
+              {
+                "node": "Summarization Chain",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Fetch essay texts": {
+          "main": [
+            [
+              {
+                "node": "Extract title",
+                "type": "main",
+                "index": 0
+              },
+              {
+                "node": "Extract Text Only",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "OpenAI Chat Model": {
+          "ai_languageModel": [
+            [
+              {
+                "node": "Summarization Chain",
+                "type": "ai_languageModel",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Default Data Loader": {
+          "ai_document": [
+            [
+              {
+                "node": "Summarization Chain",
+                "type": "ai_document",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Extract essay names": {
+          "main": [
+            [
+              {
+                "node": "Split out into items",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Summarization Chain": {
+          "main": [
+            [
+              {
+                "node": "Merge",
+                "type": "main",
+                "index": 1
+              }
+            ]
+          ]
+        },
+        "Split out into items": {
+          "main": [
+            [
+              {
+                "node": "Limit to first 3",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "When clicking \"Execute Workflow\"": {
+          "main": [
+            [
+              {
+                "node": "Fetch Essay List",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Recursive Character Text Splitter": {
+          "ai_textSplitter": [
+            [
+              {
+                "node": "Default Data Loader",
+                "type": "ai_textSplitter",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": null,
+      "staticData": null,
+      "meta": {
+        "templateId": "1951"
+      },
+      "pinData": null,
+      "versionId": "232ae8fb-4a54-4f06-a72b-72510b4043d9",
+      "triggerCount": 0,
+      "tags": []
+    },
+    {
+      "createdAt": "2025-04-03T05:11:50.917Z",
+      "updatedAt": "2025-04-03T06:49:01.000Z",
+      "id": "vIi5tMapXPjpZ3IU",
+      "name": "Automated Web Scraping: email a CSV, save to Google Sheets & Microsoft Excel",
+      "active": false,
+      "nodes": [
+        {
+          "parameters": {},
+          "id": "c3ef40df-084e-435c-9a11-3aa0a2f94f36",
+          "name": "When clicking \"Test workflow\"",
+          "type": "n8n-nodes-base.manualTrigger",
+          "position": [
+            400,
+            720
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "fieldToSplitOut": "books",
+            "options": {}
+          },
+          "id": "e0583472-a450-4582-83bc-84a014bea543",
+          "name": "Split Out",
+          "type": "n8n-nodes-base.splitOut",
+          "position": [
+            1060,
+            720
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "### You need to setup Microsoft Azure credentials with Microsoft Graph permissions.",
+            "height": 184.90255200662574
+          },
+          "id": "1ecb45ee-659e-42a9-919d-6a3ebed0b836",
+          "name": "Sticky Note",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1640,
+            280
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "### Unlike Google Sheets where we did not need to have a certain format, here we need to create the column headers, otherwise the appending to the sheet won't work.",
+            "height": 183.1237982918667
+          },
+          "id": "1d4bcfad-feae-4317-9012-7e03a6203d91",
+          "name": "Sticky Note1",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1920,
+            280
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "### For these steps to work you will need to have Drive, Sheets and Gmail APIs enabled in your Google Cloud Account",
+            "height": 135.09744799337426
+          },
+          "id": "4248ddb3-11c0-41e3-be81-ce4ec92923ee",
+          "name": "Sticky Note2",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            2040,
+            920
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "operation": "extractHtmlContent",
+            "extractionValues": {
+              "values": [
+                {
+                  "key": "books",
+                  "cssSelector": ".row > li",
+                  "returnValue": "html",
+                  "returnArray": true
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "d17174fe-8015-453a-b439-43eb3245d7cb",
+          "name": "Extract all books from the page",
+          "type": "n8n-nodes-base.html",
+          "position": [
+            840,
+            720
+          ],
+          "typeVersion": 1.2
+        },
+        {
+          "parameters": {
+            "sortFieldsUi": {
+              "sortField": [
+                {
+                  "fieldName": "price",
+                  "order": "descending"
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "5de66b0a-9138-42e3-857a-3060c71776a9",
+          "name": "Sort by price",
+          "type": "n8n-nodes-base.sort",
+          "position": [
+            1500,
+            720
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "operation": "extractHtmlContent",
+            "dataPropertyName": "books",
+            "extractionValues": {
+              "values": [
+                {
+                  "key": "title",
+                  "cssSelector": "h3 > a",
+                  "returnValue": "attribute",
+                  "attribute": "title"
+                },
+                {
+                  "key": "price",
+                  "cssSelector": ".price_color"
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "b8c539ce-292c-4b67-83b2-b397cfc5bb97",
+          "name": "Extract individual book price",
+          "type": "n8n-nodes-base.html",
+          "position": [
+            1280,
+            720
+          ],
+          "typeVersion": 1.2
+        },
+        {
+          "parameters": {
+            "operation": "append",
+            "documentId": {
+              "__rl": true,
+              "mode": "list",
+              "value": "1zyiRT7iIlfzZiskC9vDVoAFnW_UNMVXX0-ESVU1yYxY",
+              "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zyiRT7iIlfzZiskC9vDVoAFnW_UNMVXX0-ESVU1yYxY/edit?usp=drivesdk",
+              "cachedResultName": "Scraped Data"
+            },
+            "sheetName": {
+              "__rl": true,
+              "mode": "list",
+              "value": "gid=0",
+              "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zyiRT7iIlfzZiskC9vDVoAFnW_UNMVXX0-ESVU1yYxY/edit#gid=0",
+              "cachedResultName": "Sheet1"
+            },
+            "columns": {
+              "value": {},
+              "schema": [
+                {
+                  "id": "title",
+                  "type": "string",
+                  "display": true,
+                  "removed": false,
+                  "required": false,
+                  "displayName": "title",
+                  "defaultMatch": false,
+                  "canBeUsedToMatch": true
+                },
+                {
+                  "id": "price",
+                  "type": "string",
+                  "display": true,
+                  "removed": false,
+                  "required": false,
+                  "displayName": "price",
+                  "defaultMatch": false,
+                  "canBeUsedToMatch": true
+                }
+              ],
+              "mappingMode": "autoMapInputData",
+              "matchingColumns": []
+            },
+            "options": {}
+          },
+          "id": "b8aa573d-5b63-4669-900f-bcc915b6ad41",
+          "name": "Save to Google Sheets",
+          "type": "n8n-nodes-base.googleSheets",
+          "position": [
+            1840,
+            940
+          ],
+          "typeVersion": 4.2,
+          "credentials": {
+            "googleSheetsOAuth2Api": {
+              "id": "6RF6Kbgh3z5c0XLN",
+              "name": "Google Sheets account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "url": "http://books.toscrape.com",
+            "options": {
+              "allowUnauthorizedCerts": true
+            }
+          },
+          "id": "8ddca560-8da7-4090-b865-0523f95ca463",
+          "name": "Fetch website content",
+          "type": "n8n-nodes-base.httpRequest",
+          "position": [
+            620,
+            720
+          ],
+          "typeVersion": 4.1
+        },
+        {
+          "parameters": {
+            "content": "## Automated Web Scraping: email a CSV, save to Google Sheets & Microsoft Excel\n\nSet-up steps:\n1. Change the website to scrape in the \"Fetch website content\" node\n2. Configure Microsoft Azure credentials with Microsoft Graph permissions (required for the Save to Microsoft Excel 365 node)\n3. Configure Google Cloud credentials with access to Google Drive, Google Sheets and Gmail APIs (the latter is required for the Send CSV via e-mail node).",
+            "height": 297,
+            "width": 579
+          },
+          "id": "450020e6-9f43-4652-be13-25cb5eb3584c",
+          "name": "Sticky Note3",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            380,
+            240
+          ],
+          "typeVersion": 1
+        }
+      ],
+      "connections": {
+        "Split Out": {
+          "main": [
+            [
+              {
+                "node": "Extract individual book price",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Sort by price": {
+          "main": [
+            [
+              {
+                "node": "Save to Google Sheets",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Fetch website content": {
+          "main": [
+            [
+              {
+                "node": "Extract all books from the page",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Extract individual book price": {
+          "main": [
+            [
+              {
+                "node": "Sort by price",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "When clicking \"Test workflow\"": {
+          "main": [
+            [
+              {
+                "node": "Fetch website content",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Extract all books from the page": {
+          "main": [
+            [
+              {
+                "node": "Split Out",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": {},
+      "staticData": null,
+      "meta": {
+        "templateId": "2275"
+      },
+      "pinData": {},
+      "versionId": "c722d059-ffa1-4977-9ddb-96839168ef01",
+      "triggerCount": 0,
+      "tags": []
+    },
+    {
+      "createdAt": "2025-04-03T06:20:06.928Z",
+      "updatedAt": "2025-04-03T06:38:28.000Z",
+      "id": "xqem9nlTC6KAtp5F",
+      "name": "Build Your First AI Data Analyst Chatbot",
+      "active": false,
+      "nodes": [
+        {
+          "parameters": {
+            "options": {}
+          },
+          "id": "0951fd33-1811-4a89-b84f-f46dc9e6fde1",
+          "name": "When chat message received",
+          "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+          "position": [
+            1180,
+            240
+          ],
+          "webhookId": "cdc03fce-33b6-4eed-86b5-f628994e5e31",
+          "typeVersion": 1.1
+        },
+        {
+          "parameters": {
+            "options": {
+              "systemMessage": "=You are a helpful assistant.\nCurrent timestamp is {{ $now }}",
+              "maxIterations": 15
+            }
+          },
+          "id": "699c2f89-5547-4d28-92a9-5e216aecb251",
+          "name": "AI Agent",
+          "type": "@n8n/n8n-nodes-langchain.agent",
+          "position": [
+            1400,
+            240
+          ],
+          "typeVersion": 1.7
+        },
+        {
+          "parameters": {
+            "model": {
+              "__rl": true,
+              "value": "gpt-4o-mini",
+              "mode": "list",
+              "cachedResultName": "gpt-4o-mini"
+            },
+            "options": {
+              "temperature": 0.2
+            }
+          },
+          "id": "640c29f7-b67e-49f6-a864-c9b396c446b7",
+          "name": "OpenAI Chat Model",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "position": [
+            1320,
+            480
+          ],
+          "typeVersion": 1.2,
+          "credentials": {
+            "openAiApi": {
+              "id": "1KT4xSUgQbyxQfAl",
+              "name": "OpenAi account"
+            }
+          }
+        },
+        {
+          "parameters": {},
+          "id": "807630b4-c138-4b66-a438-fb70eab12a07",
+          "name": "Calculator",
+          "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+          "position": [
+            2000,
+            640
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "jsCode": "// Ensure there's at least one input item.\nif (!items || items.length === 0) {\n  throw new Error(\"No input items found.\");\n}\n\n// Our input is expected to have a 'data' property containing the JSONP string.\nconst input = items[0].json;\n\nif (!input.data) {\n  throw new Error(\"Input JSON does not have a 'data' property.\");\n}\n\nconst rawData = input.data;\n\n// Use a regex to extract the JSON content from the Google Visualization JSONP response.\nconst regex = /google\\.visualization\\.Query\\.setResponse\\((.*)\\);?$/s;\nconst match = rawData.match(regex);\n\nif (!match) {\n  throw new Error(\"Input data does not match the expected Google Visualization JSONP format.\");\n}\n\nconst jsonString = match[1];\n\n// Parse the extracted JSON string.\nlet parsed;\ntry {\n  parsed = JSON.parse(jsonString);\n} catch (error) {\n  throw new Error(\"Failed to parse JSON: \" + error.message);\n}\n\n// Verify that the parsed JSON has the expected 'table' structure with 'cols' and 'rows'.\nif (!parsed.table || !Array.isArray(parsed.table.cols) || !Array.isArray(parsed.table.rows)) {\n  throw new Error(\"Parsed JSON does not have the expected 'table' structure with 'cols' and 'rows'.\");\n}\n\nconst cols = parsed.table.cols;\nconst rows = parsed.table.rows;\n\n// Helper function to convert date string from \"Date(YYYY,M,D)\" to \"YYYY-MM-DD\"\nfunction formatDate(dateStr) {\n  const match = dateStr.match(/^Date\\((\\d+),(\\d+),(\\d+)\\)$/);\n  if (!match) return dateStr;\n  const year = parseInt(match[1], 10);\n  const month = parseInt(match[2], 10) + 1; // JavaScript months are 0-indexed\n  const day = parseInt(match[3], 10);\n  // Format with leading zeros\n  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;\n}\n\n// Map each row into an object using the column labels as keys.\nconst newItems = rows.map(row => {\n  const obj = {};\n  cols.forEach((col, index) => {\n    let value = row.c && row.c[index] ? row.c[index].v : null;\n    // If the column type is \"date\" and the value is a string that looks like \"Date(YYYY,M,D)\"\n    if (col.type === \"date\" && typeof value === \"string\") {\n      value = formatDate(value);\n    }\n    obj[col.label] = value;\n  });\n  return { json: obj };\n});\n\n// Return the new array of items.\nreturn newItems;\n"
+          },
+          "id": "132a97a3-239c-403f-843f-55b652e3efc5",
+          "name": "Code",
+          "type": "n8n-nodes-base.code",
+          "position": [
+            2000,
+            1220
+          ],
+          "typeVersion": 2
+        },
+        {
+          "parameters": {
+            "workflowInputs": {
+              "values": [
+                {
+                  "name": "start_date"
+                },
+                {
+                  "name": "end_date"
+                },
+                {
+                  "name": "status"
+                }
+              ]
+            }
+          },
+          "id": "3dc1e670-bfb1-4b63-b9c8-85656134c843",
+          "name": "When Executed by Another Workflow",
+          "type": "n8n-nodes-base.executeWorkflowTrigger",
+          "position": [
+            1440,
+            1220
+          ],
+          "typeVersion": 1.1
+        },
+        {
+          "parameters": {
+            "name": "records_by_date_and_or_status",
+            "description": "Use this tool to get records filtered by date. You can also filter by status at the same time, if you want.",
+            "workflowId": {
+              "__rl": true,
+              "mode": "list",
+              "value": "a2BIIjr2gLBay06M",
+              "cachedResultName": "Template | Your first AI Data Analyst"
+            },
+            "workflowInputs": {
+              "value": {
+                "status": "={{ $fromAI(\"status\", \"Status of the transaction. Can be Completed, Refund or Error. Leave empty if you don't need this now.\", \"string\") }}",
+                "end_date": "={{ $fromAI(\"end_date\", \"End date in format YYYY-MM-DD\", \"string\") }}",
+                "start_date": "={{ $fromAI(\"start_date\", \"Start date in format YYYY-MM-DD\", \"string\") }}"
+              },
+              "schema": [
+                {
+                  "id": "start_date",
+                  "type": "string",
+                  "display": true,
+                  "required": false,
+                  "displayName": "start_date",
+                  "defaultMatch": false,
+                  "canBeUsedToMatch": true
+                },
+                {
+                  "id": "end_date",
+                  "type": "string",
+                  "display": true,
+                  "required": false,
+                  "displayName": "end_date",
+                  "defaultMatch": false,
+                  "canBeUsedToMatch": true
+                },
+                {
+                  "id": "status",
+                  "type": "string",
+                  "display": true,
+                  "removed": false,
+                  "required": false,
+                  "displayName": "status",
+                  "defaultMatch": false,
+                  "canBeUsedToMatch": true
+                }
+              ],
+              "mappingMode": "defineBelow",
+              "matchingColumns": [],
+              "attemptToConvertTypes": false,
+              "convertFieldsToString": false
+            }
+          },
+          "id": "52a26e43-12a5-4b4a-a224-d70cdabf6aaf",
+          "name": "Records by date",
+          "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+          "position": [
+            2180,
+            460
+          ],
+          "typeVersion": 2
+        },
+        {
+          "parameters": {
+            "aggregate": "aggregateAllItemData",
+            "options": {}
+          },
+          "id": "e1811519-8699-4243-8c64-0db1ab26004d",
+          "name": "Aggregate",
+          "type": "n8n-nodes-base.aggregate",
+          "position": [
+            2440,
+            1220
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "To send all the items back to the AI, we need to finish with everything aggregated into one single item.\n\nOtherwise it will respond with one item at a time, and the AI will only get the first item that arrives.",
+            "height": 400,
+            "width": 220,
+            "color": 7
+          },
+          "id": "3b129abd-ac9a-460c-abb3-007e2c94e284",
+          "name": "Sticky Note",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            2380,
+            980
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "This node sends a custom HTTP Request to the Google Sheets API.\n\nFiltering by date range in the Google Sheets API is very complicated.\n\nThis node solves that problem.\n\nBut doing the same in a database is much simpler. A tool could do it without needing a sub-workflow.",
+            "height": 400,
+            "width": 300,
+            "color": 7
+          },
+          "id": "645ac0f9-8022-4f2c-8c6c-5aadd6cf09cc",
+          "name": "Sticky Note1",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1620,
+            980
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "The output from this complex request is also messy.\n\nSo we use some code generated by ChatGPT to transform the data into JSON objects.",
+            "height": 400,
+            "width": 220,
+            "color": 7
+          },
+          "id": "14221a72-914d-4c75-866a-d64ba7f8109f",
+          "name": "Sticky Note2",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1940,
+            980
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "url": "https://docs.google.com/spreadsheets/d/1ryzRAb2t5qy2B4MLk_niCWp16spwB55HXi0aqo20h2E/edit?gid=0#gid=0",
+            "authentication": "predefinedCredentialType",
+            "nodeCredentialType": "googleSheetsOAuth2Api",
+            "sendQuery": true,
+            "queryParameters": {
+              "parameters": [
+                {
+                  "name": "sheet",
+                  "value": "Sheet1"
+                },
+                {
+                  "name": "tq",
+                  "value": "=SELECT * WHERE A >= DATE \"{{ $json.start_date }}\" AND A <= DATE \"{{ $json.end_date }}\""
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "f12668ea-b59d-4caf-a997-381f78b7cfe7",
+          "name": "Google Sheets request",
+          "type": "n8n-nodes-base.httpRequest",
+          "position": [
+            1720,
+            1220
+          ],
+          "typeVersion": 4.2,
+          "credentials": {
+            "googleSheetsOAuth2Api": {
+              "id": "6RF6Kbgh3z5c0XLN",
+              "name": "Google Sheets account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "descriptionType": "manual",
+            "toolDescription": "Find transactions by product.\nOur products are:\n- Widget A\n- Widget B\n- Widget C\n- Widget D",
+            "documentId": {
+              "__rl": true,
+              "mode": "url",
+              "value": "https://docs.google.com/spreadsheets/d/18A4d7KYrk8-uEMbu7shoQe_UIzmbTLV1FMN43bjA7qc/edit?usp=sharing"
+            },
+            "sheetName": {
+              "__rl": true,
+              "mode": "list",
+              "value": "gid=0",
+              "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18A4d7KYrk8-uEMbu7shoQe_UIzmbTLV1FMN43bjA7qc/edit#gid=0",
+              "cachedResultName": "Sheet1"
+            },
+            "filtersUI": {
+              "values": [
+                {
+                  "lookupColumn": "Product",
+                  "lookupValue": "={{ $fromAI(\"product_name\", \"The product name\", \"string\") }}"
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "f59a2606-0981-43d1-9a07-b802891b9220",
+          "name": "Get transactions by product name",
+          "type": "n8n-nodes-base.googleSheetsTool",
+          "position": [
+            2180,
+            260
+          ],
+          "typeVersion": 4.5,
+          "credentials": {
+            "googleSheetsOAuth2Api": {
+              "id": "6RF6Kbgh3z5c0XLN",
+              "name": "Google Sheets account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "descriptionType": "manual",
+            "toolDescription": "Only use this as last resort, because it will pull all data at once.",
+            "documentId": {
+              "__rl": true,
+              "value": "https://docs.google.com/spreadsheets/d/1ryzRAb2t5qy2B4MLk_niCWp16spwB55HXi0aqo20h2E/edit?usp=sharing",
+              "mode": "url"
+            },
+            "sheetName": {
+              "__rl": true,
+              "value": "gid=0",
+              "mode": "list",
+              "cachedResultName": "Sheet1",
+              "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ryzRAb2t5qy2B4MLk_niCWp16spwB55HXi0aqo20h2E/edit#gid=0"
+            },
+            "options": {}
+          },
+          "id": "1ed7168c-1639-4b3b-a3b4-ed162bcef880",
+          "name": "Get all transactions",
+          "type": "n8n-nodes-base.googleSheetsTool",
+          "position": [
+            2000,
+            460
+          ],
+          "typeVersion": 4.5,
+          "credentials": {
+            "googleSheetsOAuth2Api": {
+              "id": "6RF6Kbgh3z5c0XLN",
+              "name": "Google Sheets account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "content": "## Some questions to try\nThere's a red button on this page that you can click to chat with the AI.\n\nTry asking it these questions:\n\n- How many refunds in January and what was the amount refunded?\n\n- How many successful sales did we have in January 2025 and what was the final income of those?\n\n- What is the most frequent reason for refunds?",
+            "height": 340,
+            "width": 320,
+            "color": 4
+          },
+          "id": "798453da-8a65-4d14-ae0a-778d64ab02ad",
+          "name": "Sticky Note3",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            800,
+            240
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "## Copy this Sheets file to your Google Drive\nhttps://docs.google.com/spreadsheets/d/18A4d7KYrk8-uEMbu7shoQe_UIzmbTLV1FMN43bjA7qc/edit?gid=0#gid=0",
+            "width": 400,
+            "color": 4
+          },
+          "id": "b8336f1a-3855-4247-9589-2f9aa35d211f",
+          "name": "Sticky Note4",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            380,
+            240
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "### 👈\nThe Calculator is a tool that allows an agent to run mathematical calculations.",
+            "height": 140,
+            "width": 200,
+            "color": 7
+          },
+          "id": "99a55b39-965b-4454-b416-d3991f0bdfbc",
+          "name": "Sticky Note5",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            2100,
+            640
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "### How to connect to Google Sheets?\nTo connect your n8n to your Google Sheets you're gonna need Google OAuth credentials\n\nSee documentation **[here](https://docs.n8n.io/integrations/builtin/credentials/google/oauth-single-service/)**",
+            "width": 400,
+            "color": 4
+          },
+          "id": "7ebebf56-e065-41c4-8270-f636785b0def",
+          "name": "Sticky Note6",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            380,
+            420
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "## 👆\nYou can use many models here, including the free Google Gemini options.\n\nMake sure to test it thoroughly. Some models are better for data analysis.",
+            "height": 260,
+            "width": 170,
+            "color": 7
+          },
+          "id": "b64df0dd-6425-4fc2-9f60-8c5a85412d61",
+          "name": "Sticky Note7",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1280,
+            600
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "## 👆\nThis is a short term memory. It will remember the 5 previous interactions during the chat",
+            "height": 260,
+            "width": 150,
+            "color": 7
+          },
+          "id": "23c7bb52-b189-45f1-949b-ea588f065583",
+          "name": "Sticky Note8",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1500,
+            600
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {},
+          "id": "6097e5a1-139b-4329-81ff-4fda16ea5221",
+          "name": "Buffer Memory",
+          "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+          "position": [
+            1520,
+            480
+          ],
+          "typeVersion": 1.3
+        },
+        {
+          "parameters": {
+            "content": "The **AI Tools Agent** has access to all the tools at the same time. It uses the name and description to decide when to use each tool.\n\nNotice I'm using `$fromAI` function in all of them.\n\nSee documentations **[here](https://docs.n8n.io/advanced-ai/examples/using-the-fromai-function/)**",
+            "height": 180,
+            "width": 340,
+            "color": 7
+          },
+          "id": "6de4a7f2-5c58-4401-bd7c-19c5a73ba775",
+          "name": "Sticky Note9",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            2320,
+            260
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "## Want more templates like this?\n### 👉 **[Check out all my templates](https://n8n.io/creators/solomon/)**",
+            "height": 100,
+            "width": 740,
+            "color": 5
+          },
+          "id": "1a983b82-d65b-4a93-b7c8-97954afd7f02",
+          "name": "Sticky Note10",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            380,
+            600
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "## 👈 This is a special tool\nIt is used to call another workflow.\nThis concept is called sub-workflow.\n\nSee documentation [here](https://docs.n8n.io/flow-logic/subworkflows/).\n\nInstead of running a completely separate workflow, we are calling the one below.\n\nIt's contained in the same workflow, but we are using the trigger to define it will run only when called by this tool.",
+            "height": 320,
+            "width": 340,
+            "color": 7
+          },
+          "id": "a308d895-bc18-4b2c-9567-78f6c29f79e8",
+          "name": "Sticky Note11",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            2320,
+            460
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "# Sub-workflow\nThe AI can call this sub-workflow anytime,\nby using the **Records by date** tool.\n\nThe sub-workflow automatically return\n the result of the last executed node to the AI.",
+            "height": 520,
+            "width": 1380,
+            "color": 7
+          },
+          "id": "0a6d94bc-21e1-4949-b7f4-c93abbecf08c",
+          "name": "Sticky Note12",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1280,
+            920
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "conditions": {
+              "options": {
+                "version": 2,
+                "leftValue": "",
+                "caseSensitive": true,
+                "typeValidation": "strict"
+              },
+              "combinator": "and",
+              "conditions": [
+                {
+                  "id": "e50da873-bbbd-41d3-a418-83193907977c",
+                  "operator": {
+                    "type": "string",
+                    "operation": "contains"
+                  },
+                  "leftValue": "={{ $json.Status }}",
+                  "rightValue": "={{ $('When Executed by Another Workflow').item.json.status }}"
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "3e424615-6e49-4bd3-b066-005b9f0f773e",
+          "name": "Filter by status",
+          "type": "n8n-nodes-base.filter",
+          "position": [
+            2220,
+            1220
+          ],
+          "typeVersion": 2.2
+        },
+        {
+          "parameters": {
+            "descriptionType": "manual",
+            "toolDescription": "Find transactions by status",
+            "documentId": {
+              "__rl": true,
+              "mode": "url",
+              "value": "https://docs.google.com/spreadsheets/d/18A4d7KYrk8-uEMbu7shoQe_UIzmbTLV1FMN43bjA7qc/edit?usp=sharing"
+            },
+            "sheetName": {
+              "__rl": true,
+              "mode": "list",
+              "value": "gid=0",
+              "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18A4d7KYrk8-uEMbu7shoQe_UIzmbTLV1FMN43bjA7qc/edit#gid=0",
+              "cachedResultName": "Sheet1"
+            },
+            "filtersUI": {
+              "values": [
+                {
+                  "lookupColumn": "Status",
+                  "lookupValue": "={{ $fromAI(\"transaction_status\", \"Transaction status can be Refund, Completed or Error\", \"string\") }}"
+                }
+              ]
+            },
+            "options": {}
+          },
+          "id": "0ad0102c-adb9-4ec9-bdf3-b1ce425b88ba",
+          "name": "Get transactions by status",
+          "type": "n8n-nodes-base.googleSheetsTool",
+          "position": [
+            2000,
+            260
+          ],
+          "typeVersion": 4.5,
+          "credentials": {
+            "googleSheetsOAuth2Api": {
+              "id": "6RF6Kbgh3z5c0XLN",
+              "name": "Google Sheets account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "content": "## Change the URL of the Sheets file in all the Sheets tools 👇",
+            "width": 300,
+            "color": 4
+          },
+          "id": "5b80cb08-6e19-47b2-8146-c299e709a34a",
+          "name": "Sticky Note13",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1980,
+            40
+          ],
+          "typeVersion": 1
+        },
+        {
+          "parameters": {
+            "content": "## 👆 Change the URL of the Sheets file",
+            "height": 100,
+            "width": 260,
+            "color": 4
+          },
+          "id": "ddc1351e-0ad0-480f-9742-30f2aa860d61",
+          "name": "Sticky Note14",
+          "type": "n8n-nodes-base.stickyNote",
+          "position": [
+            1660,
+            1400
+          ],
+          "typeVersion": 1
+        }
+      ],
+      "connections": {
+        "Code": {
+          "main": [
+            [
+              {
+                "node": "Filter by status",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Calculator": {
+          "ai_tool": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Buffer Memory": {
+          "ai_memory": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_memory",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Records by date": {
+          "ai_tool": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Filter by status": {
+          "main": [
+            [
+              {
+                "node": "Aggregate",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "OpenAI Chat Model": {
+          "ai_languageModel": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_languageModel",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Get all transactions": {
+          "ai_tool": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Google Sheets request": {
+          "main": [
+            [
+              {
+                "node": "Code",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Get transactions by status": {
+          "ai_tool": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "When chat message received": {
+          "main": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Get transactions by product name": {
+          "ai_tool": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "When Executed by Another Workflow": {
+          "main": [
+            [
+              {
+                "node": "Google Sheets request",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": {},
+      "staticData": null,
+      "meta": {
+        "templateId": "3050"
+      },
+      "pinData": {},
+      "versionId": "0fdfcfad-0c47-45c6-bb0f-a2698ee040d3",
+      "triggerCount": 0,
+      "tags": []
+    },
+    {
+      "createdAt": "2025-04-03T00:16:44.917Z",
+      "updatedAt": "2025-04-03T00:16:44.917Z",
+      "id": "zxBG6HR8Jm24wn0D",
+      "name": "Custom ChatBot",
+      "active": false,
+      "nodes": [
+        {
+          "parameters": {
+            "options": {},
+            "path": "32f04c76-9f15-4daa-a448-434cec61980b"
+          },
+          "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+          "typeVersion": 1.1,
+          "position": [
+            -360,
+            -160
+          ],
+          "id": "fbd7ba43-f1e7-4ba6-80b7-8342381e8b02",
+          "name": "When chat message received",
+          "webhookId": "32f04c76-9f15-4daa-a448-434cec61980b"
+        },
+        {
+          "parameters": {
+            "model": {
+              "__rl": true,
+              "mode": "list",
+              "value": "gpt-4o-mini"
+            },
+            "options": {}
+          },
+          "id": "998fe6dc-241d-4a10-83b4-6c4ddd6e5763",
+          "name": "OpenAI Chat Model",
+          "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+          "position": [
+            -360,
+            60
+          ],
+          "typeVersion": 1.2,
+          "credentials": {
+            "openAiApi": {
+              "id": "1KT4xSUgQbyxQfAl",
+              "name": "OpenAi account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "options": {}
+          },
+          "id": "5b68cfca-cabb-4d72-a262-bf191c0ca903",
+          "name": "AI Agent",
+          "type": "@n8n/n8n-nodes-langchain.agent",
+          "position": [
+            -200,
+            -160
+          ],
+          "typeVersion": 1.8
+        },
+        {
+          "parameters": {},
+          "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+          "typeVersion": 1.3,
+          "position": [
+            -200,
+            60
+          ],
+          "id": "411bad00-9f67-4bc2-bbe1-3de2beec9918",
+          "name": "Simple Memory"
+        },
+        {
+          "parameters": {
+            "mode": "retrieve-as-tool",
+            "toolName": "confer_info",
+            "toolDescription": "Search for Confer specific information.",
+            "pineconeIndex": {
+              "__rl": true,
+              "value": "openai-3-large",
+              "mode": "list",
+              "cachedResultName": "openai-3-large"
+            },
+            "options": {
+              "pineconeNamespace": "client1"
+            }
+          },
+          "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+          "typeVersion": 1.1,
+          "position": [
+            -60,
+            60
+          ],
+          "id": "22b23045-7371-4be2-9835-d5180e3b0d8d",
+          "name": "Pinecone Vector Store",
+          "credentials": {
+            "pineconeApi": {
+              "id": "79glKFel4TfAkYcY",
+              "name": "PineconeApi account"
+            }
+          }
+        },
+        {
+          "parameters": {
+            "model": "text-embedding-3-large",
+            "options": {}
+          },
+          "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+          "typeVersion": 1.2,
+          "position": [
+            -40,
+            320
+          ],
+          "id": "e93e1472-47ab-4713-8dfb-7b668ed2e46b",
+          "name": "Embeddings OpenAI1",
+          "credentials": {
+            "openAiApi": {
+              "id": "1KT4xSUgQbyxQfAl",
+              "name": "OpenAi account"
+            }
+          }
+        }
+      ],
+      "connections": {
+        "OpenAI Chat Model": {
+          "ai_languageModel": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_languageModel",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "When chat message received": {
+          "main": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Simple Memory": {
+          "ai_memory": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_memory",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Pinecone Vector Store": {
+          "ai_tool": [
+            [
+              {
+                "node": "AI Agent",
+                "type": "ai_tool",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "Embeddings OpenAI1": {
+          "ai_embedding": [
+            [
+              {
+                "node": "Pinecone Vector Store",
+                "type": "ai_embedding",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      },
+      "settings": {
+        "executionOrder": "v1"
+      },
+      "staticData": null,
+      "meta": {
+        "templateCredsSetupCompleted": true
+      },
+      "pinData": {},
+      "versionId": "88d579b0-461b-4050-af3f-9e06b18a01ec",
+      "triggerCount": 0,
+      "tags": []
+    }
+  ],
+  "nextCursor": null
+}
